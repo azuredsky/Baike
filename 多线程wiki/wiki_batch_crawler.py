@@ -47,11 +47,11 @@ class BatchCrawler():
 
 	def download_html(self, url, retry):
 		try:
-			# proxy_list = [p.strip() for p in open('proxies.txt').readlines()]
-			# proxy = random.choice(proxy_list)
-			# proxy_handler = request.ProxyHandler({'http': proxy})
-			# opener = request.build_opener(proxy_handler)
-			# request.install_opener(opener)
+			proxy_list = [p.strip() for p in open('proxies.txt').readlines()]
+			proxy = random.choice(proxy_list)
+			proxy_handler = request.ProxyHandler({'http': proxy})
+			opener = request.build_opener(proxy_handler)
+			request.install_opener(opener)
 			html_doc = requests.get(url, timeout=15).text
 			return html_doc
 		except Exception as e:
@@ -116,13 +116,14 @@ class BatchCrawler():
 
 
 class ThreadCrawler():
-	def __init__(self, batch_files, thread_num=1, retry=3, delay=2):
+	def __init__(self, batch_files, thread_num=1, retry=3, delay=2,max_qsize=10**5):
 		self.queue = Queue()
 		self.batch_files = batch_files
 		self.thread_num = thread_num
 		self.retry = retry
 		self.delay = delay
 
+		self.queue.maxsize=max_qsize
 		self.init_queue()
 
 	def download_html(self, url, retry):
@@ -296,7 +297,7 @@ class ThreadBatch(threading.Thread):
 	@run_time
 	def run(self):
 		logger.info("create thread for batch's number = {}".format(self.name))
-		tc = ThreadCrawler(self.batch, thread_num=2, retry=3, delay=2)
+		tc = ThreadCrawler(self.batch, thread_num=2, retry=3, delay=2,max_qsize=10*5)
 		tc.run()
 
 
